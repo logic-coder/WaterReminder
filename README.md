@@ -9,6 +9,7 @@ The app is built with WPF on .NET 8. It runs from the system tray, shows a compa
 ## Features
 
 - Tray icon with quick actions.
+- Automatic UI language selection: Chinese is used when the system UI language is `zh`; all other system UI languages use English.
 - Manual "remind now" action from the tray menu.
 - Configurable reminder interval, start time, end time, workday-only mode, theme mode, and auto-start setting.
 - Pause or resume reminders for the current day.
@@ -53,6 +54,7 @@ These files are user-local runtime data and are not part of the source repositor
 ## Project Structure
 
 - `AppController.cs` coordinates the tray icon, menu actions, reminder window, settings, and scheduler.
+- `LocalizationService.cs` selects Chinese or English UI text from the current system UI language.
 - `ReminderScheduler.cs` calculates reminder times and waits for user confirmation before scheduling the next interval.
 - `NotificationWindow.xaml` and `NotificationWindow.xaml.cs` define the reminder window UI and confirmation behavior.
 - `SettingsStore.cs` reads and writes local JSON settings.

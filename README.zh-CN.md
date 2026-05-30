@@ -7,6 +7,7 @@ WaterReminder 是一个轻量的 Windows 桌面托盘应用，用于在可配置
 ## 功能
 
 - 系统托盘图标和快捷菜单。
+- 界面语言根据系统 UI 语言自动选择：系统 UI 语言为 `zh` 时使用中文，其余语言使用英文。
 - 可从托盘菜单手动触发“立即提醒”。
 - 支持配置提醒间隔、开始时间、结束时间、仅工作日提醒、主题模式和开机启动。
 - 支持暂停或恢复当天提醒。
@@ -51,6 +52,7 @@ dotnet publish -c Release -o publish
 ## 项目结构
 
 - `AppController.cs`：协调托盘图标、菜单操作、提醒窗口、设置和调度器。
+- `LocalizationService.cs`：根据当前系统 UI 语言选择中文或英文界面文案。
 - `ReminderScheduler.cs`：计算提醒时间，并在用户确认前保持等待状态。
 - `NotificationWindow.xaml` 和 `NotificationWindow.xaml.cs`：定义提醒窗口界面和确认行为。
 - `SettingsStore.cs`：读取和写入本地 JSON 设置。

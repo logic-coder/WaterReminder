@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
@@ -54,9 +53,10 @@ public partial class App : System.Windows.Application
     {
         _controller?.LogService.Write("UI", e.Exception);
         e.Handled = true;
+        var text = LocalizationService.CurrentText;
         System.Windows.MessageBox.Show(
-            "喝水提醒程序遇到异常，将退出。详细信息已写入日志。",
-            Assembly.GetExecutingAssembly().GetName().Name,
+            text.ErrorMessage,
+            text.ErrorTitle,
             System.Windows.MessageBoxButton.OK,
             System.Windows.MessageBoxImage.Error);
         Shutdown(-1);

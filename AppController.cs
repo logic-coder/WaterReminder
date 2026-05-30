@@ -13,6 +13,7 @@ public sealed class AppController : IDisposable
     private readonly Forms.ToolStripMenuItem _pauseTodayMenuItem;
     private readonly Forms.ToolStripMenuItem _autoStartMenuItem;
     private readonly AppSettings _settings;
+    private readonly LocalizedText _text;
     private NotificationWindow? _notificationWindow;
     private bool _disposed;
     private bool _suppressAutoStartChanged;
@@ -20,6 +21,7 @@ public sealed class AppController : IDisposable
     public AppController(LogService logService)
     {
         LogService = logService;
+        _text = LocalizationService.CurrentText;
         _settingsStore = new SettingsStore(logService);
         _startupService = new StartupService(logService);
         _settings = _settingsStore.Load();
@@ -32,17 +34,17 @@ public sealed class AppController : IDisposable
         _pauseTodayMenuItem = new Forms.ToolStripMenuItem();
         _pauseTodayMenuItem.Click += (_, _) => TogglePauseToday();
 
-        _autoStartMenuItem = new Forms.ToolStripMenuItem("开机启动");
+        _autoStartMenuItem = new Forms.ToolStripMenuItem(_text.AutoStart);
         _autoStartMenuItem.CheckOnClick = true;
         _autoStartMenuItem.CheckedChanged += AutoStartMenuItemOnCheckedChanged;
 
-        var remindNowMenuItem = new Forms.ToolStripMenuItem("立即提醒");
+        var remindNowMenuItem = new Forms.ToolStripMenuItem(_text.RemindNow);
         remindNowMenuItem.Click += (_, _) => _scheduler.TriggerImmediateReminder();
 
-        var openConfigMenuItem = new Forms.ToolStripMenuItem("打开配置文件");
+        var openConfigMenuItem = new Forms.ToolStripMenuItem(_text.OpenConfigFile);
         openConfigMenuItem.Click += (_, _) => OpenConfigDirectory();
 
-        var exitMenuItem = new Forms.ToolStripMenuItem("退出");
+        var exitMenuItem = new Forms.ToolStripMenuItem(_text.Exit);
         exitMenuItem.Click += (_, _) => System.Windows.Application.Current.Shutdown();
 
         _menu = new Forms.ContextMenuStrip();
@@ -107,7 +109,7 @@ public sealed class AppController : IDisposable
             return;
         }
 
-        _notificationWindow = new NotificationWindow(_settings, _scheduler.NextReminderAt);
+        _notificationWindow = new NotificationWindow(_settings, _scheduler.NextReminderAt, _text);
         _notificationWindow.DrinkConfirmed += OnDrinkConfirmed;
         _notificationWindow.Closed += OnNotificationWindowClosed;
         _notificationWindow.Show();
@@ -174,16 +176,11 @@ public sealed class AppController : IDisposable
 
     private void UpdateNotifyText(DateTime? nextReminderAt, bool waitingForAcknowledgement)
     {
-        if (waitingForAcknowledgement)
-        {
-            const string waitingText = "喝水提醒: 等待确认";
-            _notifyIcon.Text = waitingText.Length > 63 ? waitingText[..63] : waitingText;
-            return;
-        }
-
-        var text = nextReminderAt is null
-            ? "喝水提醒: 当前未启用"
-            : $"喝水提醒: 下次 {nextReminderAt.Value:HH:mm}";
+        var text = waitingForAcknowledgement
+            ? _text.TrayWaitingForConfirmation
+            : nextReminderAt is null
+                ? _text.TrayDisabled
+                : _text.TrayNextReminder(nextReminderAt.Value);
 
         _notifyIcon.Text = text.Length > 63 ? text[..63] : text;
     }
@@ -191,7 +188,7 @@ public sealed class AppController : IDisposable
     private void UpdateMenuState()
     {
         var paused = _settings.PausedDateLocal?.Date == DateTime.Today;
-        _pauseTodayMenuItem.Text = paused ? "恢复今天提醒" : "暂停今天提醒";
+        _pauseTodayMenuItem.Text = paused ? _text.ResumeToday : _text.PauseToday;
         _autoStartMenuItem.Checked = _settings.AutoStart;
     }
 

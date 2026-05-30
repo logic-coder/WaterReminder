@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Input;
 using System.Windows.Media;
 using MediaBrushes = System.Windows.Media.Brushes;
@@ -8,14 +9,12 @@ namespace WaterReminder;
 
 public partial class NotificationWindow : Window
 {
-    public NotificationWindow(AppSettings settings, DateTime? nextReminderAt)
+    public NotificationWindow(AppSettings settings, DateTime? nextReminderAt, LocalizedText text)
     {
         InitializeComponent();
 
+        ApplyText(settings, nextReminderAt, text);
         ApplyPalette(ThemeService.Resolve(settings.Theme));
-        NextTimeText.Text = nextReminderAt is null
-            ? $"确认后，将在 {settings.IntervalMinutes} 分钟后再次提醒。"
-            : $"预计下一次提醒时间：{nextReminderAt:HH:mm}";
 
         Loaded += OnLoaded;
     }
@@ -27,6 +26,22 @@ public partial class NotificationWindow : Window
         Topmost = false;
         Topmost = true;
         Activate();
+    }
+
+    private void ApplyText(AppSettings settings, DateTime? nextReminderAt, LocalizedText text)
+    {
+        Title = text.AppTitle;
+        TitleText.Text = text.AppTitle;
+        SubtitleText.Text = text.WindowSubtitle;
+        BodyText.Text = text.WindowBody;
+        HintText.Text = text.WindowHint;
+        CloseButton.ToolTip = text.CloseReminder;
+        AutomationProperties.SetName(CloseButton, text.CloseReminder);
+        DrinkButton.Content = text.DrinkConfirmedButton;
+        AutomationProperties.SetName(DrinkButton, text.DrinkConfirmedAutomationName);
+        NextTimeText.Text = nextReminderAt is null
+            ? text.ConfirmAfterMinutes(settings.IntervalMinutes)
+            : text.ExpectedNextReminder(nextReminderAt.Value);
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
